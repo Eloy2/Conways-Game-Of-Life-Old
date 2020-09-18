@@ -22,9 +22,9 @@ function Rules() {
             <AppBottomHeader><AppBottomTitle>Rules</AppBottomTitle></AppBottomHeader>
             <AppBottomBottomDiv>
                 <BulletList>
-                    <Bullet>Any live cell with two or three live neighbours survives.</Bullet>
-                    <Bullet>Any dead cell with three live neighbours becomes a live cell.</Bullet>
-                    <Bullet>All other live cells die in the next generation. Similarly, all other dead cells stay dead.</Bullet>
+                    <li>Any live cell with two or three live neighbours survives.</li>
+                    <li>Any dead cell with three live neighbours becomes a live cell.</li>
+                    <li>All other live cells die in the next generation. Similarly, all other dead cells stay dead.</li>
                 </BulletList>
             </AppBottomBottomDiv>    
         </AppBottomOuterDiv>
