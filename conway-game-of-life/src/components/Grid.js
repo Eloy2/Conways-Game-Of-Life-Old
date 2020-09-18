@@ -1,143 +1,307 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from "react";
+import produce from "immer";
 import styled from 'styled-components';
-import produce from 'immer'; // produce from immer allows me make a copy of state
 
 const OuterDiv = styled.div`
     width: 100%;
-    border: 1px solid red;
-`
-
-const Header = styled.header`
-    border: 1px solid red;
-    padding .5%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 `
+
+const Header = styled.header`
+    margin: 2%;
+    padding .5% 3% .5% 3%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: #202630;
+    box-shadow:  8px 8px 16px #1b2029, 
+                -8px -8px 16px #252c37;
+`
 const Title = styled.h2`
-    color: #34a4eb;
+    color: #9d03fc;
 `
 
 const MidDiv = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 0 2% 0;
 `
 
 const BottomDiv = styled.div`
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    margin: 0 0 2% 0;
 `
 
-const Button = styled.button`
-
-`
-const numberCols = 50;
-const numberRows = 50;
-const speed = 1000;
-
-const GridDiv = styled.div`
-    display: grid;
-    grid-template-columns: repeat(${numberCols}, 10px)
+const SettingDiv1 = styled.div`
+    margin-bottom: 1.5%;
+    width: 55%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
 `
 
-const sleep = (milliseconds) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
+const SettingDiv2 = styled.div`
+    padding: 1.7% 0 1.7% 0;
+    width: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    border-radius: 15px;
+    background: #323845;
+    box-shadow: inset 6px 6px 12px #2b303b, 
+                inset -6px -6px 12px #3a404f;
+`
 
-const moves = [ // [x, y]
-    [0, 1], // north
-    [1, 1], // north-east
-    [1, 0], // east
-    [1, -1], // south-east
-    [0, -1], // south
-    [-1, -1], // south-west
-    [-1, 0], // west
-    [-1, 1], // northwest
-]
+const ButtonOff = styled.div`
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ and Edge */
+    user-select: none; /* Standard syntax */
+    cursor: pointer;
+    font-weight: bold;
+    color: #9d03fc;
+    padding: 1% 3% 1% 3%;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #222933, #1d222b);
+    box-shadow:  4px 4px 8px #1b2029, 
+                -4px -4px 8px #252c37;
+    &:hover {
+        background: white;
+        border-radius: 15px;
+        background: linear-gradient(145deg, #ffffff, #e6e6e6);
+        box-shadow:  4px 4px 9px #d9d9d9, 
+             -4px -4px 9px #ffffff;
+    }
+`
 
-function Grid2() {
-    const [grid, setGrid] = useState(() => {
-        const row = [];
-        for (let i= 0; i < numberRows; i++) {
-            row.push(Array.from(Array(numberCols), () => 0))
-        }
-        return row;
-    }) // initial state
+const ButtonOn = styled.div`
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ and Edge */
+    user-select: none; /* Standard syntax */
+    cursor: pointer;
+    font-weight: bold;
+    color: #9d03fc;
+    padding: 1% 3% 1% 3%;
+    background: white;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #ffffff, #e6e6e6);
+    box-shadow:  4px 4px 9px #d9d9d9, 
+            -4px -4px 9px #ffffff;
 
-    const [looping, setLooping] = useState(false); // flag checks if simulation is running
-    
-    // const loopingRef = useRef(looping); 
-    // loopingRef.current = looping; // will get the current value of looping
+`
 
-    const simulation = () => {
-        setGrid(grid => {
-            return produce(grid, gridCopy => {
-                for (let i = 0; i < numberRows; i++) {
-                    for (let j = 0; i < numberCols; i++) {
-                        let neighbors = 0;
-                        moves.forEach(([x,y]) => {
-                            const newI = i + x;
-                            const newJ = j + y;
-                            if (newI >= 0 && newI < numberRows && newJ >= 0 && newJ < numberCols) { // staying within boundaries of grid
-                                neighbors += grid[newI][newJ];
-                            }
-                        })
+const H3 = styled.h3`
+    color: #9d03fc;
+`
 
-                            if(neighbors < 2 || neighbors > 3) { // if there are too little or too many neighbors the cell dies
-                                gridCopy[i][j] = 0;
-                            } else if (grid[i][j] === 0 && neighbors === 3) { // if conditions are right cell lives on to next gen
-                                gridCopy[i][j] = 1;
-                            }
-                        }
-                    }
-                })
-        })
+// let speed = 1000;
+
+const moves = [
+  [0, 1],
+  [0, -1],
+  [1, -1],
+  [-1, 1],
+  [1, 1],
+  [-1, -1],
+  [1, 0],
+  [-1, 0]
+];
+
+function Grid() { // MAIN GRID COMPONENT
+  const [speed, setSpeed] = useState(1000)
+
+  const [settings, setSettings] = useState({
+    numRows: 25,
+    numCols: 60,
+  })
+
+  const [gen, setGen] = useState(0);
+
+  const make2DArray = () => { // make 2d array full of zero's
+    const rows = [];
+    for (let i = 0; i < settings.numRows; i++) {
+        rows.push(Array.from(Array(settings.numCols), () => 0));
+    }
+    return rows;
+  };
+
+  const [grid, setGrid] = useState(() => { // set up state for grid
+    return make2DArray();
+  });
+
+  const [running, setRunning] = useState(false); // set up flag and check if it is running
+
+  const runningRef = useRef(running); // allows me to get the current value of running
+  runningRef.current = running;
+
+  const speedRef = useRef(speed); // allows me to get the current value of speed
+  speedRef.current = speed;
+
+  const runSimulation = useCallback(() => {
+    if (!runningRef.current) {
+      return;
     }
 
-    const startLooping = async () => { // useCallback returns a memoized version of calback
-        while(looping) {
-            simulation();
-            await sleep(1000);
+    setGrid(g => {
+      return produce(g, gridCopy => {
+        for (let i = 0; i < settings.numRows; i++) {
+          for (let k = 0; k < settings.numCols; k++) {
+            let neighbors = 0;
+            moves.forEach(([x, y]) => {
+              const newI = i + x;
+              const newK = k + y;
+              if (newI >= 0 && newI < settings.numRows && newK >= 0 && newK < settings.numCols) {
+                neighbors += g[newI][newK];
+              }
+            });
+
+            if (neighbors < 2 || neighbors > 3) {
+              gridCopy[i][k] = 0;
+            } else if (g[i][k] === 0 && neighbors === 3) {
+              gridCopy[i][k] = 1;
+            }
+          }
         }
-    } // passing an empty array will make sure that this funcitonm is only created once
+      });
+    });
 
-    return (
-        <OuterDiv>
-            <Header><Title>Generation #:</Title></Header>
-            <MidDiv>
-                <GridDiv>
-                    {grid.map((rows, i) =>
-                        rows.map((cols, j) => (
-                            <div
-                            onClick={() => {
-                                const newGrid = produce(grid, gridCopy => {
-                                    gridCopy[i][j] = grid[i][j] ? 0 : 1;
-                                })
-                                setGrid(newGrid)
-                            }}
-                            style={{
-                                width: 10,
-                                height: 10,
-                                backgroundColor: grid[i][j] ? "black" : undefined,
-                                border: ".1px solid black"
-                            }}/>
-                        ))
-                    )}
-                </GridDiv>
-            </MidDiv>
-            <BottomDiv>
-                <Button onClick={() => {
-                    setLooping(!looping);
-                    if (!looping) {
-                        startLooping();
+    setGen(gen => (gen + 1))
+
+    setTimeout(runSimulation, speedRef.current);
+  }, []);
+
+  const runStep = () => {
+
+    setGrid(g => {
+        return produce(g, gridCopy => {
+            for (let i = 0; i < settings.numRows; i++) {
+                for (let k = 0; k < settings.numCols; k++) {
+                let neighbors = 0;
+                moves.forEach(([x, y]) => {
+                    const newI = i + x;
+                    const newK = k + y;
+                    if (newI >= 0 && newI < settings.numRows && newK >= 0 && newK < settings.numCols) {
+                    neighbors += g[newI][newK];
                     }
-                }}>{ looping ? "Stop" : "Start" }</Button>
-                <Button>Clear</Button>
-            </BottomDiv>
-        </OuterDiv>
-    );
-}
+                });
 
-export default Grid2;
+                if (neighbors < 2 || neighbors > 3) {
+                    gridCopy[i][k] = 0;
+                } else if (g[i][k] === 0 && neighbors === 3) {
+                    gridCopy[i][k] = 1;
+                }
+                }
+        }
+        });
+    });
+
+    setGen(gen => (gen + 1))
+
+  }
+
+  return (
+    <OuterDiv>
+        <Header><Title>Generation #: {gen}</Title></Header>
+        <MidDiv>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${settings.numCols}, 21px)`,
+          background: "#323845",
+          boxShadow: "inset 20px 20px 40px #2b303b, inset -20px -20px 40px #3a404f",
+        }}>
+            {grid.map((rows, i) =>
+            rows.map((col, k) => (
+                <div
+                key={`${i}-${k}`}
+                onClick={() => {
+                    if (!running) {
+                        const newGrid = produce(grid, gridCopy => {
+                            gridCopy[i][k] = grid[i][k] ? 0 : 1;
+                        });
+                        setGrid(newGrid);   
+                    }
+                }}
+                style={{
+                    width: 20,
+                    height: 20,
+                    backgroundColor: grid[i][k] ? "#9d03fc" : undefined,
+                    border: "solid .1px rgba(32, 38, 48, .5)" //#202630 <-- Is the hex of the color the .5 in rgba() is for 50% transparency
+                }}
+                />
+            ))
+            )}
+        </div>
+        </MidDiv>
+        <BottomDiv>
+            <SettingDiv1>
+                {running ? 
+                <ButtonOn
+                onClick={() => {
+                    setRunning(!running);
+                    if (!running) {
+                        runningRef.current = true;
+                        runSimulation();
+                    }
+                    }}
+                >Stop</ButtonOn>
+                : 
+                <ButtonOff
+                onClick={() => {
+                    setRunning(!running);
+                    if (!running) {
+                        runningRef.current = true;
+                        runSimulation();
+                    }
+                    }}
+                >Start</ButtonOff>}
+                <ButtonOff
+                    onClick={() => {
+                    const rows = [];
+                    for (let i = 0; i < settings.numRows; i++) {
+                        rows.push(
+                        Array.from(Array(settings.numCols), () => (Math.random() > 0.7 ? 1 : 0))
+                        );
+                    }
+
+                    setGrid(rows);
+                    }}
+                >
+                    Random
+                </ButtonOff>
+                <ButtonOff
+                    onClick={() => {
+                        setGen(0);
+                        setGrid(make2DArray());
+                    }}
+                >
+                    Clear
+                </ButtonOff>
+                <ButtonOff
+                    onClick={() => {
+                        runStep();
+                    }}
+                >
+                    Step
+                </ButtonOff>
+                
+            </SettingDiv1>
+            <SettingDiv2>
+                <H3>Speeds: </H3>
+                {speed === 1000 ? <ButtonOn>Slow</ButtonOn> : <ButtonOff onClick={() => setSpeed(1000)}>Slow</ButtonOff>}
+                {speed === 500 ? <ButtonOn>Medium</ButtonOn> : <ButtonOff onClick={() => setSpeed(500)} >Medium</ButtonOff>}
+                {speed === 100 ? <ButtonOn>Fast</ButtonOn> : <ButtonOff onClick={() => setSpeed(100)}>Fast</ButtonOff>}
+            </SettingDiv2>
+        </BottomDiv>
+    </OuterDiv>
+  );
+};
+
+export default Grid;

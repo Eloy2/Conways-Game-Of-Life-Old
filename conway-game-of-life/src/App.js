@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Rules from './components/Rules';
 import About from './components/About';
-import Grid2 from './components/Grid2';
+import Grid from './components/Grid';
 
 const Header = styled.header`
     padding .1%;
@@ -31,7 +31,7 @@ function App() {
     return (
         <AppDiv>
             <Header><Title>Conway's Game of Life</Title></Header>
-            <Grid2/>
+            <Grid/>
             <BottomDiv>
                 <Rules/>
                 <About/>

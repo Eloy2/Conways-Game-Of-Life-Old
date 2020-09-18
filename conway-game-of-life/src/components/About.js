@@ -1,35 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-
-const OuterDiv = styled.div`
-    width: 50%;
-    background-color: #323845;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-`
-
-const Header = styled.header`
-    width: 95%;
-    padding 1%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #202630;
-    border-radius: 15px;
-    background: #202630;
-    box-shadow:  8px 8px 17px #1b2029, 
-                 -8px -8px 17px #252c37;
-`
-const Title = styled.h2`
-    color: #9d03fc;
-`
-
-const BottomDiv = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-`
+import { AppBottomBottomDiv, AppBottomHeader, AppBottomOuterDiv, AppBottomTitle } from "../util/Styles"
 
 const P = styled.p`
     margin-top: 5%;
@@ -45,9 +16,9 @@ const P = styled.p`
 
 function About() {
     return (
-        <OuterDiv>
-            <Header><Title>About</Title></Header>
-            <BottomDiv>
+        <AppBottomOuterDiv>
+            <AppBottomHeader><AppBottomTitle>About</AppBottomTitle></AppBottomHeader>
+            <AppBottomBottomDiv>
                 <P>
                 This is a game originally made by John Horton Conway. 
                 It is a zero player game where you simply put initial input, hit start and observe. 
@@ -56,8 +27,8 @@ function About() {
                 because it is a system that is able to recognize or decide other data-manipulation 
                 rule sets.
                 </P>
-            </BottomDiv>
-        </OuterDiv>
+            </AppBottomBottomDiv>
+        </AppBottomOuterDiv>
     );
 }
 
