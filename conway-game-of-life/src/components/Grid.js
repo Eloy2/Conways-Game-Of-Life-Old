@@ -145,7 +145,7 @@ function Grid() { // MAIN GRID COMPONENT
   const speedRef = useRef(speed); // allows me to get the current value of speed
   speedRef.current = speed;
 
-  const runSimulation = useCallback(() => {
+  const runSimulation = useCallback(() => { // usecallback uses memoization to optimize function calls
     if (!runningRef.current) {
       return;
     }
